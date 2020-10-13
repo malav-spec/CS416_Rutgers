@@ -61,7 +61,12 @@ void createScheduler(){
  queue->num_node = 0;
  sched = (struct scheduler*)malloc(sizeof(struct scheduler));
  sched->queue = queue;
- 
+ void *stack2 = malloc(STACK_SIZE);
+ sched->schedcontext.uc_link = NULL;
+ sched->schedcontext.uc_stack.ss_sp = stack2;
+ sched->schedcontext.uc_stack.ss_size = STACK_SIZE;
+
+return;
 }
 
 void runScheduler(){
@@ -76,8 +81,8 @@ void runScheduler(){
      }
    ptr=ptr->next;
   }*/
- 
-getcontext(&(sched->schedcontext));
+
+//getcontext(&(sched->schedcontext));
 swapcontext(&(sched->schedcontext), &(next_thread->thread_block->tctx));
 if(sched->current!=NULL){
    enqueue(next_thread);
@@ -110,10 +115,12 @@ node->next = NULL;
 
 struct Node* dequeue(){
 
- struct Node* ptr = sched->queue->head;
+ struct Node* ptr = (struct Node*)malloc(sizeof(struct Node*));
+        ptr->thread_block = sched->queue->head->thread_block;
  
  if(sched->queue->head->next == NULL){
-   return sched->queue->head;
+   free(sched->queue->head);
+   return ptr;
  }
  sched->queue->head = sched->queue->head->next;
  return ptr;
@@ -189,10 +196,7 @@ int mypthread_yield() {
                perror("getcontext failed"); return 0;
    
             }
-            sched->schedcontext.uc_link = NULL;
-            sched->schedcontext.uc_stack.ss_sp = stack
-       sched->schedcontext.uc_stack.ss_size = STACK_SIZE;
-       setcontext(&sched->schedcontext);
+            setcontext(&sched->schedcontext);
         //basically set a timer prematurely to stop executing the current thread
         
 	// YOUR CODE HERE
